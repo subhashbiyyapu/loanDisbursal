@@ -1,0 +1,11 @@
+ {
+        "loanRequestId": 100,
+        "accountNo": 1001,
+        "amount": 100000,
+        "loanType": "hoamloan",
+        "rateOfInterest": 12.5,
+        "tenure": 12,
+        "creditScore": 670,
+        "loanStatus": "notdisbursed",
+        "EmployeeId": 12345
+    }
