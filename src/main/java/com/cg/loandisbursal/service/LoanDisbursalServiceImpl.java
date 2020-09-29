@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.transaction.Transactional;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.cg.loandisbursal.dao.LoanDisbursalDao;
 import com.cg.loandisbursal.dto.LoanRequestDto;
+import com.cg.loandisbursal.dto.LoanTransaction;
 import com.cg.loandisbursal.entity.LoanDisbursalEntity;
 
 @Service
@@ -32,7 +34,7 @@ public class LoanDisbursalServiceImpl implements LoanDisbursalService {
 	@Override
 	@Transactional
 	public Boolean addApprovedLoanRequest(LoanRequestDto dto) {
-		LoanDisbursalEntity entity =new LoanDisbursalEntity(null, dto.getAccountNo(), dto.getAmount(), dto.getLoanType(), dto.getRateOfInterest(), dto.getTenure(),0.0, "notdisbursed", null, dto.getEmployeeId());
+		LoanDisbursalEntity entity =new LoanDisbursalEntity(null, dto.getAccountNo(), dto.getAmount(), dto.getLoanType(), dto.getRateOfInterest(), dto.getTenure(),0.0, "notdisburseds", null, dto.getEmployeeId());
 		Double principal=dto.getAmount();
 		Double roi=dto.getRateOfInterest()/(12*100);
 		Integer months=dto.getTenure();
@@ -52,16 +54,31 @@ public class LoanDisbursalServiceImpl implements LoanDisbursalService {
 	@Override
 	@Transactional
 	public Boolean updateAcccountBalance(LoanDisbursalEntity loanDisbursalEntity) {
-		 Map<String, String> params = new HashMap<>();
-		    params.put("loanId",loanDisbursalEntity.getLoanId().toString());
-		    params.put("amount",loanDisbursalEntity.getAmount().toString());
+		LoanTransaction loanDto=new LoanTransaction(loanDisbursalEntity.getLoanId(),loanDisbursalEntity.getAccountNo(),loanDisbursalEntity.getAmount());
+
 		   //URL has to be written 
-		    restTemplate.put ( " ", null, params );
+		   Boolean status= restTemplate.postForObject("" , loanDto, Boolean.class);
+		  if(status)
+		  {
 		    loanDisbursalEntity.setApprovedDate(LocalDate.now());
 		    loanDisbursalEntity.setLoanStatus("ongoing");
 		    loanDisbursalDao.save(loanDisbursalEntity);
 		    logger.info("In service updating accounts balance ");
 		    return true;
+		  }
+		  else
+		  {logger.info("In service updating accounts balance failure ");
+			  return false;
+		  }
+		   
+		   
+		
+	}
+
+	@Override
+	public List<LoanDisbursalEntity> fetchloans(String filter) {
+		 logger.info("In service fetching loans ");
+		 return loanDisbursalDao.findByLoanStatus(filter);
 		
 	}
 
